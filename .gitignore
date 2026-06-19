@@ -3,7 +3,7 @@
 .env
 
 # Pythonの仮想環境
-api/
+.venv/
 
 # Pythonキャッシュ
 __pycache__/
