@@ -273,9 +273,34 @@ mixed_precision.set_global_policy("mixed_float16")
 
 ---
 
+---
+
+- ローカル（docker-compose）起動例：リポジトリ直下で実行する。
+
+```
+docker compose up --build
+podman-compose up --build
+```
+
+- コンテナの停止
+```
+podman-compose down
+```
+
+
+- コンテナの削除
+```
+sudo docker-compose down
+```
+
+---
+
 ## 注意事項
 
 * クラスごとに十分な枚数の画像を用意してください。
 * 学習データ数が少ない場合、精度が低下する可能性があります。
 * 学習完了後に生成された ZIP ファイルは自動削除されます。
 * コールバック先の Go サーバーが起動している必要があります。
+
+
+

@@ -1,0 +1,5 @@
+services:
+  python-api:
+    build: .
+    volumes:
+      - ./received_images:/app/storage # 今のディレクトリにあるフォルダをマウント

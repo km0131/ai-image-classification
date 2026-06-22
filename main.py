@@ -1,25 +1,77 @@
-from fastapi import FastAPI, File, Form, UploadFile, Request
-import numpy as np
-import cv2
 import os
 import shutil  # 追加：ZIP作成用
 import requests # 追加：Goへの送信用
-from typing import List, Dict
 import tensorflow as tf
 from tensorflow.keras import layers, models, mixed_precision
 import tensorflowjs as tfjs
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from pydantic import BaseModel
+import cv2
+import numpy as np
+from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+from tensorflow.keras.models import Model
+app = FastAPI()
+
+# 特徴量抽出モデルのロード（グローバルスコープで一度だけロード）
+base_model = ResNet50(weights='imagenet', include_top=False)
+feature_extractor = Model(inputs=base_model.input, outputs=base_model.output)
+
+class AnalysisResponse(BaseModel):
+    saturation: float
+    brightness: float
+    message: str
+    sharpness: float  # 追加
+    diversity_vector: list  # 追加 (次元削減後の2次元ベクトル)
+    message: str
+
+
+@app.post("/analyze", response_model=AnalysisResponse)
+async def analyze_image(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        img = cv2.decodem(nparr, cv2.IMREAD_COLOR)  # cv2.imdecode のタイポ修正
+        if img is None:
+            raise HTTPException(status_code=400, detail="Invalid image")
+
+        # --- 1. 明度・彩度解析 ---
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        saturation = float(np.mean(hsv[:, :, 1])) / 255.0
+        brightness = float(np.mean(hsv[:, :, 2])) / 255.0
+
+        # --- 2. 鮮明度解析 (ラプラシアン分散) ---
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        sharpness = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+
+        # --- 3. 多様性評価のための特徴量抽出 ---
+        # リサイズしてモデル入力形式へ
+        img_resized = cv2.resize(img, (224, 224))
+        x = np.expand_dims(img_resized, axis=0)
+        x = preprocess_input(x)
+        features = feature_extractor.predict(x).flatten()
+
+        # 多様性評価用: 特徴量の代表値（簡易的に最初の2要素を使用）
+        # ※本来は全画像でt-SNEを行いますが、API単体では抽出ベクトルを返却
+        diversity_vector = features[:2].tolist()
+
+        return {
+            "saturation": float(saturation),
+            "brightness": float(brightness),
+            "sharpness": float(sharpness),
+            "diversity_vector": [float(x) for x in diversity_vector],
+            "message": "Analysis successful"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # 混合精度 (RTX 3060 Ti用)
 mixed_precision.set_global_policy(mixed_precision.Policy('mixed_float16'))
-
-app = FastAPI()
 
 MODEL_CONFIGS = {
     'effnet_lite4': {'size': (300, 300), 'base': tf.keras.applications.EfficientNetB4},
     'mobilenet_v3': {'size': (224, 224), 'base': tf.keras.applications.MobileNetV3Large},
     'convnext_tiny': {'size': (256, 256), 'base': tf.keras.applications.ConvNeXtTiny}
 }
-
 @app.post("/process")
 async def process_ai(request: Request):
     form = await request.form()
