@@ -15,7 +15,54 @@ import zipfile
 import json
 from dotenv import load_dotenv
 
+def setup_precision():
+    gpus = tf.config.list_physical_devices("GPU")
+
+    if not gpus:
+        print("GPUが検出されませんでした")
+        print("CPU実行のため float32 を使用します")
+        policy = "float32"
+
+    else:
+        details = tf.config.experimental.get_device_details(gpus[0])
+        gpu_name = details.get("device_name", "不明")
+        cc = details.get("compute_capability", (0,0))
+
+        print(f"検出されたGPU: {gpu_name}")
+        print(f"Compute Capability: {cc}")
+
+        # Tensor Core搭載世代
+        if cc[0] >= 7:
+            print("Tensor Core対応GPUを検出しました")
+            print("混合精度学習 (mixed_float16) を有効化します")
+            policy = "mixed_float16"
+        else:
+            print("Tensor Core非対応GPUです")
+            print("通常精度 (float32) を使用します")
+            policy = "float32"
+
+    mixed_precision.set_global_policy(
+        mixed_precision.Policy(policy)
+    )
+
+    print("--------------------------------")
+    print(
+        "現在の精度設定:",
+        mixed_precision.global_policy()
+    )
+    print("--------------------------------")
+
 print("起動しました。")
+
+# 混合精度 GPUに合わせて最適化
+setup_precision()
+
+# 使用するAIモデル
+MODEL_CONFIGS = {
+    'effnet_lite4': {'size': (300, 300), 'base': tf.keras.applications.EfficientNetB4},
+    'mobilenet_v3': {'size': (224, 224), 'base': tf.keras.applications.MobileNetV3Large},
+    'convnext_tiny': {'size': (256, 256), 'base': tf.keras.applications.ConvNeXtTiny}
+}
 
 load_dotenv()
 
@@ -95,15 +142,6 @@ async def analyze_image(
     except Exception as e:
         logger.error(f"🚨 エラー発生: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-# 混合精度 (RTX 3060 Ti用)
-mixed_precision.set_global_policy(mixed_precision.Policy('mixed_float16'))
-
-MODEL_CONFIGS = {
-    'effnet_lite4': {'size': (300, 300), 'base': tf.keras.applications.EfficientNetB4},
-    'mobilenet_v3': {'size': (224, 224), 'base': tf.keras.applications.MobileNetV3Large},
-    'convnext_tiny': {'size': (256, 256), 'base': tf.keras.applications.ConvNeXtTiny}
-}
 
 # Ai 作成
 @app.post("/process")
