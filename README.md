@@ -186,10 +186,10 @@ group1-shard1ofN.bin
 
 ```text
 .
-├── main.py
-├── exported_models/
-├── requirements.txt
-└── README.md
+├── models_config.py  # 1. AIモデルの構造定義・GPU設定
+├── ai_logic.py       # 2. 学習、TFJS変換、テスト評価の重たいロジック
+├── main.py           # 3. FastAPIの起動・APIルート・エンドポイント（軽量化）
+└── .env              # 環境変数（既存のまま）
 ```
 
 ---
