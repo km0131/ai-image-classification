@@ -1,9 +1,13 @@
+# [ARCHIVED 2026-07-10] 旧TensorFlow版 MobileViT-v2 の事前学習スクリプト。
+# tf.keras.datasets.imagenet.load_data() はTF/Kerasに存在しないAPIであり、
+# このスクリプトは移行前から実行不能なスタブだった。ロールバック用に削除せず保管する。
+# 詳細は README.md の「MobileViT-v2移行について」を参照。
 import tensorflow as tf
 from tensorflow.keras import layers, models
 import os
 
 # ここは現在作成したMobileViTv2をimport
-from models_config import MobileViTv2
+from model import MobileViTv2
 
 print("GPU一覧:")
 print(tf.config.list_physical_devices("GPU"))

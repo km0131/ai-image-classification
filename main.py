@@ -9,8 +9,8 @@ from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Hea
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-from tensorflow.keras.models import Model
+import torch
+import torch_models as tm
 import logging
 import requests
 import threading
@@ -27,9 +27,10 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-# 特徴量抽出器の初期化
-base_model = ResNet50(weights='imagenet', include_top=False)
-feature_extractor = Model(inputs=base_model.input, outputs=base_model.output)
+# 特徴量抽出器の初期化(PyTorch/timm版ResNet50。num_classes=0でGAP済み特徴ベクトルを直接出力させる)
+feature_extractor = tm.build_model(num_classes=0, timm_name="resnet50", pretrained=True)
+feature_extractor.eval()
+feature_preprocess_cfg = tm.get_preprocess_config(feature_extractor)
 
 
 class AnalysisResponse(BaseModel):
@@ -59,9 +60,11 @@ async def analyze_image(file: UploadFile = File(...), id: str = Form(...), autho
         brightness = float(np.mean(hsv[:, :, 2])) / 255.0
         sharpness = float(cv2.Laplacian(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var())
 
-        x = preprocess_input(np.expand_dims(cv2.resize(img, (224, 224)), axis=0))
-        with gpu_lock:
-            diversity_vector = feature_extractor.predict(x, verbose=0).flatten()[:2].tolist()
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        resized = cv2.resize(img_rgb, (feature_preprocess_cfg["width"], feature_preprocess_cfg["height"]))
+        x = tm.prepare_inputs(np.expand_dims(resized, axis=0).astype(np.float32), feature_preprocess_cfg)
+        with gpu_lock, torch.no_grad():
+            diversity_vector = feature_extractor(x.to(tm.DEVICE)).cpu().numpy().flatten()[:2].tolist()
 
         return {"saturation": saturation, "brightness": brightness, "sharpness": sharpness,
                 "diversity_vector": diversity_vector, "message": "Analysis successful"}
@@ -127,12 +130,14 @@ def run_process_and_notify_go(temp_zip_path: str, job_id: int):
     except Exception as e:
         logger.error(f"[ERROR] 学習処理中にエラーが発生しました (job_id={job_id}): {e}")
         try:
-            requests.post(
+            resp = requests.post(
                 go_callback_url,
                 json={"status": "error", "job_id": job_id, "detail": str(e)},
                 headers={"Authorization": f"Bearer {go_secret}"},
                 timeout=60,
             )
+            resp.raise_for_status()
+            logger.info(f"[INFO] Goへのエラー通知が完了しました (job_id={job_id}, status_code={resp.status_code})")
         except Exception as notify_err:
             logger.error(f"[ERROR] Goへのエラー通知にも失敗しました: {notify_err}")
 
@@ -214,9 +219,10 @@ def run_test_and_notify_go(temp_zip_path: str, status_id: int):
         TEST_MAX_IMAGES = int(os.getenv("TEST_MAX_IMAGES", "0"))
 
         # モデルごとにループ（model_nameはここ、辞書のキーから取得）
+        # 3モデルとも.tfliteへ移行済み（Go側 test_worker.go も.tfliteのみをZIPに同梱する）
         for model_name, entries in models_meta.items():
-            keras_path = os.path.join(models_dir, f"{model_name}.keras")
-            if not os.path.exists(keras_path):
+            tflite_path = os.path.join(models_dir, f"{model_name}.tflite")
+            if not os.path.exists(tflite_path):
                 logger.warning(f"model file not found for {model_name}, skipping")
                 continue
 
@@ -242,7 +248,7 @@ def run_test_and_notify_go(temp_zip_path: str, status_id: int):
                 continue
 
             with gpu_lock:
-                result = ai_logic.evaluate_test_model(keras_path, extract_dir, model_name, test_x, true_indices)
+                result = ai_logic.evaluate_test_model(tflite_path, extract_dir, model_name, test_x, true_indices)
 
             # 予測インデックス -> 実際のラベルIDに変換してitineraryに書き戻す
             for entry, pred_idx, conf in zip(valid_entries, result["predictions"], result["confidences"]):
@@ -260,6 +266,7 @@ def run_test_and_notify_go(temp_zip_path: str, status_id: int):
             "status_id": status_id,
             "summary": summary,      # モデル別集計 -> StudentTestJobModel用
             "itinerary": itinerary,  # 画像単位の予測結果込み -> StudentTestResultSnapshot用
+            "detail": "",            # Go側 TestResultCallbackInput.Detail と揃える(成功時は空文字)
         }
 
         # ★Goの受け取り用Webhookへ結果を通知

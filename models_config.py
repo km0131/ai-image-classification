@@ -1,69 +1,14 @@
 import os
-import tensorflow as tf
-from tensorflow.keras import layers, models, mixed_precision
 
-
-def MobileViTv2(input_shape=(256, 256, 3), include_top=False, weights=None):
-    inputs = layers.Input(shape=input_shape)
-    x = layers.Conv2D(32, 3, strides=2, padding="same", activation="swish")(inputs)
-    x = layers.BatchNormalization()(x)
-    x = layers.Conv2D(64, 3, padding="same", activation="swish")(x)
-
-    shortcut = layers.Conv2D(96, 3, strides=2, padding="same")(x)
-    x = layers.LayerNormalization()(shortcut)
-
-    h = input_shape[0] // 4
-    w = input_shape[1] // 4
-    x = layers.Reshape((-1, 96))(x)
-
-    attention = layers.MultiHeadAttention(num_heads=4, key_dim=24)
-    x = attention(x, x)
-    x = layers.Reshape((h, w, 96))(x)
-    x = layers.Add()([shortcut, x])
-    x = layers.Conv2D(128, 3, padding="same", activation="swish")(x)
-
-    if include_top:
-        x = layers.GlobalAveragePooling2D()(x)
-
-    model = models.Model(inputs, x, name="MobileViTv2")
-
-    if weights is not None:
-        if os.path.exists(weights):
-            print("Loading ImageNet pretrained weight:", weights)
-            model.load_weights(weights, skip_mismatch=True)
-            print("MobileViTv2 ImageNet weight loaded")
-        else:
-            print("Weight file not found:", weights)
-    return model
-
-
-def setup_precision():
-    gpus = tf.config.list_physical_devices("GPU")
-    if not gpus:
-        print("=============================================================")
-        print("GPUが検出されませんでした。CPU実行のため float32 を使用します")
-        print("=============================================================")
-        policy = "float32"
-    else:
-        details = tf.config.experimental.get_device_details(gpus[0])
-        cc = details.get("compute_capability", (0, 0))
-        if cc[0] >= 7:
-            print("=============================================================")
-            print(f"Tensor Core対応GPUを検出 ({details.get('device_name', '不明')})。mixed_float16 を有効化します")
-            print("=============================================================")
-            policy = "mixed_float16"
-        else:
-            policy = "float32"
-    mixed_precision.set_global_policy(mixed_precision.Policy(policy))
-
-
-# 起動時初期化
-setup_precision()
-
+# 3モデルとも PyTorch/timm へ統一済み。実装は torch_models.py 参照。
+# 旧TF版(mobilenet_v3/efficientnet_lite4のKeras実装、mobilevit_v2の自作Attentionブロック)は
+# legacy/tf_cnn_models/ 、legacy/mobilevit_v2_tf/ にアーカイブ済み。
 MODEL_CONFIGS = {
-    'mobilenet_v3': {'size': (224, 224), 'base': tf.keras.applications.MobileNetV3Large, 'weights': 'imagenet'},
-    'efficientnet_lite4': {'size': (300, 300), 'base': tf.keras.applications.EfficientNetB4, 'weights': 'imagenet'},
-    'mobilevit_v2': {'size': (256, 256), 'base': MobileViTv2, 'weights': './weights/mobilevitv2_imagenet.keras'}
+    'mobilenet_v3':       {'framework': 'torch', 'size': (224, 224), 'timm_name': 'mobilenetv3_large_100'},
+    # 'tf_efficientnet_lite4' のネイティブ解像度は380x380(旧コードは別アーキテクチャの
+    # EfficientNetB4を誤って"efficientnet_lite4"として使っており300x300だった)。
+    'efficientnet_lite4': {'framework': 'torch', 'size': (380, 380), 'timm_name': 'tf_efficientnet_lite4'},
+    'mobilevit_v2':       {'framework': 'torch', 'size': (256, 256), 'timm_name': 'mobilevitv2_100'},
 }
 
 # モードの切り替え

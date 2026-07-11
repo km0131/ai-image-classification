@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ## 概要
 
-本システムは、ユーザーがアップロードした画像データを利用して画像分類AIモデルを学習し、学習済みモデルを TensorFlow.js 形式で出力する学習サービスです。
+本システムは、ユーザーがアップロードした画像データを利用して画像分類AIモデルを学習し、学習済みモデルを .tflite 形式で出力する学習サービスです。フロントエンドは LiteRT.js から呼び出します。
 
 FastAPI を利用して API を提供し、学習完了後に Go バックエンドへ通知を行います。
 
@@ -37,8 +37,8 @@ FastAPI を利用して API を提供し、学習完了後に Go バックエン
 ## 主な機能
 
 * 複数クラス画像分類モデルの学習
-* TensorFlow / Keras による転移学習
-* TensorFlow.js 形式への変換
+* PyTorch (timm) による転移学習
+* .tflite 形式への変換（変換前の元モデルも同梱）
 * 学習済みモデルの ZIP 圧縮
 * Go サーバーへの自動通知（コールバック）
 
@@ -52,9 +52,11 @@ FastAPI を利用して API を提供し、学習完了後に Go バックエン
 
 ### AI / Machine Learning
 
-* TensorFlow
-* Keras
-* TensorFlow.js
+* PyTorch / timm（mobilenet_v3, efficientnet_lite4, mobilevit_v2 の3モデル共通基盤。`torch_models.py`）
+* LiteRT（.tflite変換・TFLite Interpreterによる性能テスト評価）
+
+TensorFlowは使用していない(`tensorflow[and-cuda]`とtorchのCUDAライブラリ要求が競合し
+`pip install`が`ResolutionImpossible`になっていたため、2026-07-11に完全排除した)。
 
 ### Image Processing
 
@@ -71,13 +73,49 @@ FastAPI を利用して API を提供し、学習完了後に Go バックエン
 
 本システムでは以下の事前学習済みモデルを利用します。
 
-| モデル              | 入力サイズ     |
-| ---------------- | --------- |
-| EfficientNetB4   | 300 × 300 |
-| MobileNetV3Large | 224 × 224 |
-| ConvNeXtTiny     | 256 × 256 |
+| モデル              | timmモデル名                | 入力サイズ     | 配信用(変換済み) | アーカイブ用(変換前) |
+| ---------------- | ------------------------ | --------- | ---------- | ----------- |
+| mobilenet_v3     | `mobilenetv3_large_100`  | 224 × 224 | .tflite    | .pt         |
+| efficientnet_lite4 | `tf_efficientnet_lite4` | 380 × 380 | .tflite    | .pt         |
+| mobilevit_v2     | `mobilevitv2_100`        | 256 × 256 | .tflite    | .pt         |
 
-学習時には ImageNet の事前学習済み重みを利用した転移学習を行います。
+すべてPyTorch/timm実装(`torch_models.py`)。分類ヘッドは生ロジットを返す(softmax層なし)ため、
+評価・フロントエンド推論の双方で明示的にsoftmaxを適用する。
+
+学習時には ImageNet の事前学習済み重みを利用した転移学習を行います。3モデルとも `.tflite` に変換してフロントエンド
+(LiteRT.js)から呼び出す。Goバックエンドへ返すZIPには変換済み(.tflite)と変換前の元モデル(.pt)の両方を含める。
+
+---
+
+## .tflite / LiteRT.js への全面移行について(2026-07-10)
+
+MobileViT-v2は元々TensorFlowの自作モデル(Conv+LayerNorm+MultiHeadAttentionを数層組み合わせただけの簡易実装で、
+実在するMobileViT-v2アーキテクチャではなく、事前学習済み重みも実質読み込まれていなかった)だった。これを
+PyTorch + `timm`(`mobilevitv2_100`, ImageNet事前学習済み)に置き換え、`litert-torch`(旧`ai-edge-torch`)で
+`.tflite` に変換する構成にした。
+
+その後、MobileNetV3Large / EfficientNetB4 を含む3モデルすべてを `.tflite` + LiteRT.js に統一した
+(従来はTensorFlow.js形式)。性能テスト機能(`/test`)も3モデル共通のTFLite Interpreter評価に統一している。
+
+- 旧TF版MobileViT-v2(ロールバック用にアーカイブ): `legacy/mobilevit_v2_tf/`
+
+## TensorFlowの完全排除・PyTorch統一について(2026-07-11)
+
+`requirements.txt` に `tensorflow[and-cuda]` と `torch` を同居させると、両者が要求する
+`nvidia-cublas-cu12` 等CUDAライブラリの厳密なバージョン指定(`==`同士)が競合し、`pip install` が
+`ResolutionImpossible` で失敗するようになった。これを構造的に解消するため、残っていた
+`mobilenet_v3`(`MobileNetV3Large`) / `efficientnet_lite4`(誤って`EfficientNetB4`を使用していた)
+のTensorFlow/Keras実装もPyTorch/timmへ移行し、`tensorflow` を依存関係から完全に排除した。
+`main.py` の `/analyze` エンドポイント(ResNet50特徴抽出器)もPyTorch/timmに置き換えている。
+外部インターフェース(FastAPIエンドポイント、Goへのコールバック形式、学習曲線のキー名)は変更していない。
+
+- 新実装: `torch_models.py`(旧`mobilevit_v2_torch.py`。3モデル共通のPyTorch/timm学習・変換基盤に汎用化)
+- `efficientnet_lite4` の入力サイズは380×380に変更(本物のEfficientNet-Lite4のネイティブ解像度。
+  旧実装は別アーキテクチャを誤って使っていたため300×300だった)
+- 旧TF版CNN実装(ロールバック用にアーカイブ): `legacy/tf_cnn_models/`
+- 既知の注意点: `torch==2.6.0`は`pip install`自体は通るが、`litert-torch`が依存する`torchao`が
+  `torch.utils._pytree.register_constant`(torch 2.6系には存在しない)を要求するため実行時に
+  クラッシュする。`litert-torch`と実際に組み合わせて動作確認済みの`torch==2.10.0`を使うこと。
 
 ---
 
@@ -141,23 +179,23 @@ optimizer=Adam(1e-5)
 
 ## モデル出力
 
-学習済みモデルは TensorFlow.js 形式で保存されます。
+学習済みモデルは .tflite 形式(配信用)+ 変換前の元モデル(アーカイブ用)で保存されます。
 
 出力先
 
 ```text
 exported_models/
 └── user_id/
-    ├── effnet_lite4/
-    ├── mobilenet_v3/
-    └── convnext_tiny/
-```
-
-各フォルダには以下が生成されます。
-
-```text
-model.json
-group1-shard1ofN.bin
+    ├── mobilenet_v3/model.tflite       # フロント配信用
+    ├── mobilenet_v3.tflite             # Go /test 評価用(model.tfliteと同一)
+    ├── mobilenet_v3.pt                 # 変換前の元モデル(PyTorch state_dict, アーカイブ用)
+    ├── efficientnet_lite4/model.tflite
+    ├── efficientnet_lite4.tflite
+    ├── efficientnet_lite4.pt
+    ├── mobilevit_v2/model.tflite
+    ├── mobilevit_v2.tflite
+    ├── mobilevit_v2.pt
+    └── label_map.json
 ```
 
 ---
@@ -186,10 +224,11 @@ group1-shard1ofN.bin
 
 ```text
 .
-├── models_config.py  # 1. AIモデルの構造定義・GPU設定
-├── ai_logic.py       # 2. 学習、TFJS変換、テスト評価の重たいロジック
-├── main.py           # 3. FastAPIの起動・APIルート・エンドポイント（軽量化）
-└── .env              # 環境変数（既存のまま）
+├── models_config.py  # 1. AIモデルの構造定義(timm_name等)
+├── torch_models.py   # 2. 3モデル共通のPyTorch/timm学習・前処理・.tflite変換基盤
+├── ai_logic.py        # 3. 学習ループの呼び出し、テスト評価の重たいロジック
+├── main.py            # 4. FastAPIの起動・APIルート・エンドポイント（軽量化）
+└── .env               # 環境変数（既存のまま）
 ```
 
 ---
@@ -199,8 +238,8 @@ group1-shard1ofN.bin
 ```bash
 pip install fastapi
 pip install uvicorn
-pip install tensorflow
-pip install tensorflowjs
+pip install torch torchvision timm
+pip install litert-torch ai-edge-litert
 pip install opencv-python
 pip install numpy
 pip install requests
@@ -263,12 +302,14 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 * NVIDIA RTX 3060 Ti 以上
 * CUDA 12系
-* cuDNN対応版 TensorFlow
+* cuDNN対応版 PyTorch(`torch==2.10.0`)
 
-混合精度学習（Mixed Precision）を有効化しており、VRAM使用量と学習速度を最適化しています。
+混合精度学習（AMP）を有効化しており、VRAM使用量と学習速度を最適化しています(`torch_models.py`の
+`setup_precision_torch()`がTensor Core対応GPUを検出して自動的に有効化)。
 
 ```python
-mixed_precision.set_global_policy("mixed_float16")
+with torch.cuda.amp.autocast(enabled=USE_AMP):
+    ...
 ```
 
 ---

@@ -6,16 +6,62 @@ import zipfile
 import cv2
 import numpy as np
 import requests
-import subprocess
-# TensorFlowをimportする前に設定する必要がある
-os.environ["TF_XLA_FLAGS"] = "--tf_xla_auto_jit=0"
-os.environ["XLA_FLAGS"] = "--xla_gpu_autotune_level=0"
+import torch
 
 if os.getenv("FORCE_CPU_FOR_TEST", "false").lower() == "true":
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-import tensorflow as tf
-from tensorflow.keras import layers, models
+
 from models_config import MODEL_CONFIGS, EPOCH1, EPOCH2, BATCH1, BATCH2, VALIDATION, FINE_TUNE
+import torch_models as tm
+
+
+def _train_and_export_torch_model(model_name, config, x_resized, y_train, num_classes, user_export_root):
+    """PyTorch(timm)での学習・エクスポート。3モデル(mobilenet_v3/efficientnet_lite4/mobilevit_v2)共通。
+
+    出力(user_export_root配下):
+      {model_name}/model.tflite  … フロント配信用(toPublicURLがこのパスを指す)
+      {model_name}.tflite        … Go /test 評価用(トップレベル単体ファイル規約)
+      {model_name}.pt            … 元モデルのアーカイブ(変換済みモデルと元モデルの両方を返す要件のため)
+    """
+    model, history, preprocess_cfg = tm.train_timm_model(
+        x_resized, y_train, num_classes,
+        epoch1=EPOCH1, epoch2=EPOCH2, batch1=BATCH1, batch2=BATCH2,
+        validation_split=VALIDATION, fine_tune=FINE_TUNE,
+        timm_name=config["timm_name"],
+    )
+
+    expected_h, expected_w = config["size"]
+    if (preprocess_cfg["height"], preprocess_cfg["width"]) != (expected_h, expected_w):
+        print(f"[{model_name}] 警告: timmの既定入力サイズ({preprocess_cfg['height']}x{preprocess_cfg['width']}) が "
+              f"models_config.pyのsize({expected_h}x{expected_w})と異なります。models_config.pyのsizeを合わせてください。")
+
+    epoch_accuracies = [float(v) for v in history["accuracy"]]
+    epoch_losses = [float(v) for v in history["loss"]]
+    val_accuracies = [float(v) for v in history["val_accuracy"]]
+    val_losses = [float(v) for v in history["val_loss"]]
+
+    curve = [
+        {"epoch": i + 1, "accuracy": epoch_accuracies[i], "loss": epoch_losses[i],
+         "val_accuracy": val_accuracies[i], "val_loss": val_losses[i]}
+        for i in range(len(epoch_accuracies))
+    ]
+    best_epoch = int(np.argmin(val_losses))
+    summary_entry = {"accuracy": val_accuracies[best_epoch], "loss": val_losses[best_epoch]}
+
+    export_path = os.path.join(user_export_root, model_name)
+    os.makedirs(export_path, exist_ok=True)
+
+    tflite_path = os.path.join(export_path, "model.tflite")
+    tm.export_tflite(model, preprocess_cfg, tflite_path, model_label=model_name)
+    shutil.copyfile(tflite_path, os.path.join(user_export_root, f"{model_name}.tflite"))
+    tm.export_pt(model, os.path.join(user_export_root, f"{model_name}.pt"), model_label=model_name)
+
+    del model
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    return curve, summary_entry, val_losses[best_epoch]
+
 
 def run_training_and_callback(extract_dir, user_id, all_x, all_y, unique_labels):
     # 1. データのテンソル化
@@ -46,109 +92,18 @@ def run_training_and_callback(extract_dir, user_id, all_x, all_y, unique_labels)
     with open(os.path.join(user_export_root, "label_map.json"), "w", encoding="utf-8") as f:
         json.dump(label_map_export, f, ensure_ascii=False, indent=2)
 
-    # 3モデルループ
+    # 3モデルループ(全てPyTorch/timm経由)
     for model_name, config in MODEL_CONFIGS.items():
         print(f"=== Training: {model_name} ===")
         img_size = config["size"]
         x_resized = np.array([cv2.resize(img, (img_size[1], img_size[0])) for img in all_x], dtype=np.float32)
 
-        if model_name == "mobilenet_v3":
-            x_resized = tf.keras.applications.mobilenet_v3.preprocess_input(x_resized)
-        elif model_name == "efficientnet_lite4":
-            x_resized = tf.keras.applications.efficientnet.preprocess_input(x_resized)
-        elif model_name == "mobilevit_v2":
-            x_resized = x_resized / 127.5 - 1.0
-
-        base = config["base"](input_shape=(*img_size, 3), include_top=False, weights=config.get("weights"))
-        base.trainable = False
-
-        model = models.Sequential([
-            base,
-            layers.GlobalAveragePooling2D(),
-            layers.Dense(num_classes, activation="softmax", dtype="float32")
-        ])
-
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
-            loss="sparse_categorical_crossentropy",
-            metrics=["accuracy"]
+        curve, summary_entry, best_val_loss = _train_and_export_torch_model(
+            model_name, config, x_resized, y_train, num_classes, user_export_root
         )
-
-        # Phase 1
-        history1 = model.fit(
-            x_resized, y_train, epochs=EPOCH1, batch_size=BATCH1, validation_split=VALIDATION,
-            callbacks=[
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True, verbose=1),
-                tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.2, patience=3, min_lr=1e-7, verbose=1)
-            ], verbose=1
-        )
-
-        # Phase 2 Fine tuning
-        if FINE_TUNE:
-            base.trainable = True
-            fine_tune_at = int(len(base.layers) * 0.7)
-            for layer in base.layers[:fine_tune_at]:
-                layer.trainable = False
-            for layer in base.layers:
-                if isinstance(layer, (layers.BatchNormalization, layers.LayerNormalization)):
-                    layer.trainable = False
-
-            model.compile(
-                optimizer=tf.keras.optimizers.Adam(learning_rate=1e-6),
-                loss="sparse_categorical_crossentropy",
-                metrics=["accuracy"]
-            )
-
-            history2 = model.fit(
-                x_resized, y_train, epochs=EPOCH2, batch_size=BATCH2, validation_split=VALIDATION,
-                callbacks=[
-                    tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True,
-                                                     verbose=1),
-                    tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.2, patience=3, min_lr=1e-8,
-                                                         verbose=1)
-                ], verbose=1
-            )
-
-        # 履歴の統合
-        history_dict = {k: history1.history[k] + history2.history[k] if FINE_TUNE else history1.history[k] for k in
-                        history1.history.keys()}
-
-        epoch_accuracies = [float(x) for x in history_dict["accuracy"]]
-        epoch_losses = [float(x) for x in history_dict["loss"]]
-        val_accuracies = [float(x) for x in history_dict["val_accuracy"]]
-        val_losses = [float(x) for x in history_dict["val_loss"]]
-
-        all_models_curves[model_name] = [
-            {"epoch": i + 1, "accuracy": epoch_accuracies[i], "loss": epoch_losses[i],
-             "val_accuracy": val_accuracies[i], "val_loss": val_losses[i]}
-            for i in range(len(epoch_accuracies))
-        ]
-
-        best_epoch = np.argmin(val_losses)
-        summary_loss = val_losses[best_epoch]
-        model_summary[model_name] = {"accuracy": val_accuracies[best_epoch], "loss": val_losses[best_epoch]}
-
-        # 🌟 TF.js へのコンバート処理
-        export_path = os.path.join(user_export_root, model_name)
-        os.makedirs(export_path, exist_ok=True)
-        temp_h5_path = f"/tmp/temp_model_{user_id}_{model_name}.h5"
-        model.save(temp_h5_path, include_optimizer=False, save_format="h5")
-        native_keras_path = os.path.join(user_export_root, f"{model_name}.keras")
-        model.save(native_keras_path, save_format="keras")
-
-        try:
-            cmd = ["tensorflowjs_converter", "--input_format", "keras", temp_h5_path, export_path]
-            subprocess.run(cmd, check=True, capture_output=True, text=True)
-            print(f"[{model_name}] TFJSへの変換成功")
-        except subprocess.CalledProcessError as e:
-            print(f"💥 TFJS変換失敗: {e.stderr}")
-            raise e
-        finally:
-            if os.path.exists(temp_h5_path):
-                os.remove(temp_h5_path)
-
-        tf.keras.backend.clear_session()
-        del model, base
+        all_models_curves[model_name] = curve
+        model_summary[model_name] = summary_entry
+        summary_loss = best_val_loss
         gc.collect()
 
     # Goサーバーへ一括ZIP送信
@@ -185,46 +140,78 @@ def run_training_and_callback(extract_dir, user_id, all_x, all_y, unique_labels)
             shutil.rmtree(user_export_root)
 
 
-# Goから届いた .keras モデルと画像ZIPを使って性能テストをするロジック
+def _softmax(x):
+    e = np.exp(x - np.max(x))
+    return e / e.sum()
+
+
+def _preprocess_for_tflite_eval(model_name, config, all_test_x):
+    """TFLite評価用の前処理。学習時(run_training_and_callback / _train_and_export_torch_model)と
+    必ず同じ前処理を適用すること。3モデル共通でtimmのmean/stdに基づく正規化を行う。
+    timmの分類ヘッドはどのモデルも生ロジットを返すため、apply_softmaxは常にTrue。
+    戻り値: (NHWC float32配列, apply_softmax)
+    """
+    # 重みのダウンロードは不要(pretrained=False)。timmが持つmean/std/入力サイズのメタデータだけを参照する。
+    ref_model = tm.build_model(num_classes=1, timm_name=config["timm_name"], pretrained=False)
+    preprocess_cfg = tm.get_preprocess_config(ref_model)
+    del ref_model
+
+    img_h, img_w = preprocess_cfg["height"], preprocess_cfg["width"]
+    x_resized = np.array([cv2.resize(img, (img_w, img_h)) for img in all_test_x], dtype=np.float32)
+    mean = np.array(preprocess_cfg["mean"], dtype=np.float32)
+    std = np.array(preprocess_cfg["std"], dtype=np.float32)
+    x_norm = (x_resized / 255.0 - mean) / std
+    return x_norm, True
+
+
+def _run_tflite_interpreter(model_path, x_hwc, apply_softmax):
+    """共通のTFLite Interpreter実行ループ。x_hwcはNHWC(前処理済み)。
+    tf.lite.InterpreterはTF 2.20で削除予定のため、後継のai_edge_litert.Interpreterを使う。
+    変換後の入力レイアウトがNCHW/NHWCどちらになるか断定せず、shapeから判定して転置する
+    (litert-torch由来はNCHWになりやすいが、実際のモデルshapeを信頼する)。"""
+    from ai_edge_litert.interpreter import Interpreter
+
+    interpreter = Interpreter(model_path=model_path)
+    interpreter.allocate_tensors()
+    input_detail = interpreter.get_input_details()[0]
+    output_detail = interpreter.get_output_details()[0]
+
+    in_shape = input_detail["shape"]
+    is_nchw = len(in_shape) == 4 and in_shape[1] == 3
+    x_input = np.transpose(x_hwc, (0, 3, 1, 2)) if is_nchw else x_hwc
+    x_input = x_input.astype(input_detail["dtype"])
+
+    all_probs = []
+    for i in range(len(x_input)):
+        interpreter.set_tensor(input_detail["index"], x_input[i:i + 1])
+        interpreter.invoke()
+        out = interpreter.get_tensor(output_detail["index"])[0]
+        all_probs.append(_softmax(out) if apply_softmax else out)
+    return np.array(all_probs)
+
+
+# Goから届いた .tflite モデルと画像ZIPを使って性能テストをするロジック(3モデル共通)
 def evaluate_test_model(model_path, extract_dir, model_name, all_test_x, all_test_y):
     config = MODEL_CONFIGS.get(model_name)
     if not config:
         return {"error": f"Unknown model_name: {model_name}"}
 
-    img_size = config["size"]
-    x_resized = np.array([cv2.resize(img, (img_size[1], img_size[0])) for img in all_test_x], dtype=np.float32)
+    x_pre, apply_softmax = _preprocess_for_tflite_eval(model_name, config, all_test_x)
+    y_test = np.array(all_test_y, dtype=np.int64)
 
-    if model_name == "mobilenet_v3":
-        x_resized = tf.keras.applications.mobilenet_v3.preprocess_input(x_resized)
-    elif model_name == "efficientnet_lite4":
-        x_resized = tf.keras.applications.efficientnet.preprocess_input(x_resized)
-    elif model_name == "mobilevit_v2":
-        x_resized = x_resized / 127.5 - 1.0
+    print(f"[{model_name}] evaluate開始(TFLite Interpreter): 画像枚数={len(all_test_x)}")
 
-    y_test = np.array(all_test_y, dtype=np.int32)
+    all_probs = _run_tflite_interpreter(model_path, x_pre, apply_softmax)
+    predictions = np.argmax(all_probs, axis=1)
+    confidences = np.max(all_probs, axis=1)
+    losses = [-np.log(max(all_probs[i][y_test[i]], 1e-9)) for i in range(len(y_test))]
 
-    model = tf.keras.models.load_model(model_path)
-    model.compile(loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-
-    test_batch_size = int(os.getenv("TEST_BATCH_SIZE", "8"))
-
-    print(f"[{model_name}] evaluate開始: 画像枚数={len(all_test_x)}, batch_size={test_batch_size}")
-
-    # 集計値（従来通り）
-    loss, accuracy = model.evaluate(x_resized, y_test,batch_size=test_batch_size, verbose=0)
-
-    # 追加：画像ごとの予測結果（StudentTestResultSnapshot用）
-    pred_probs = model.predict(x_resized, batch_size=test_batch_size,verbose=0)
-    predictions = np.argmax(pred_probs, axis=1).tolist()
-    confidences = np.max(pred_probs, axis=1).tolist()
-
-    tf.keras.backend.clear_session()
-    del model
-    gc.collect()
+    accuracy = float(np.mean(predictions == y_test)) if len(y_test) else 0.0
+    loss = float(np.mean(losses)) if losses else 0.0
 
     return {
-        "loss": float(loss),
-        "accuracy": float(accuracy),
-        "predictions": predictions,   # 画像順に並んだ予測ラベルIDのリスト
-        "confidences": confidences,   # 画像順に並んだ確信度のリスト
+        "loss": loss,
+        "accuracy": accuracy,
+        "predictions": predictions.tolist(),   # 画像順に並んだ予測ラベルIDのリスト
+        "confidences": confidences.tolist(),   # 画像順に並んだ確信度のリスト
     }
