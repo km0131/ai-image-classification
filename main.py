@@ -9,6 +9,7 @@ from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Hea
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
+import timm
 import torch
 import torch_models as tm
 import logging
@@ -27,10 +28,24 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-# 特徴量抽出器の初期化(PyTorch/timm版ResNet50。num_classes=0でGAP済み特徴ベクトルを直接出力させる)
-feature_extractor = tm.build_model(num_classes=0, timm_name="resnet50", pretrained=True)
-feature_extractor.eval()
+# 特徴量抽出器の初期化(DINOv2。「似た画像は近く、違う画像は遠くに配置される」ことを自己教師あり学習で
+# 直接学習しているため、ImageNet分類用のResNet50よりdiversity_vector用途に適している)
+# num_classes=0で分類ヘッドを除去し埋め込みベクトルをそのまま取得。img_size=224でデフォルトの
+# 518x518より計算コストを抑える。
+feature_extractor = timm.create_model(
+    "vit_small_patch14_dinov2.lvd142m",
+    pretrained=True,
+    num_classes=0,
+    img_size=224,
+)
+feature_extractor.eval().to(tm.DEVICE)
+
+# 既存の共通関数をそのまま利用するが、resolve_data_config()はimg_size=224の指定を無視して
+# チェックポイントのネイティブ解像度(518x518)を返してしまうため、height/widthだけ実際の
+# 推論サイズに上書きする(mean/stdはこの調整の影響を受けないため既存値のまま使う)。
 feature_preprocess_cfg = tm.get_preprocess_config(feature_extractor)
+feature_preprocess_cfg["height"] = 224
+feature_preprocess_cfg["width"] = 224
 
 
 class AnalysisResponse(BaseModel):
@@ -39,6 +54,14 @@ class AnalysisResponse(BaseModel):
     sharpness: float
     diversity_vector: list
     message: str
+
+
+class ReduceDiversityRequest(BaseModel):
+    vectors: list[list[float]]
+
+
+class ReduceDiversityResponse(BaseModel):
+    points: list[list[float]]
 
 
 def verify_token(authorization: str):
@@ -64,13 +87,58 @@ async def analyze_image(file: UploadFile = File(...), id: str = Form(...), autho
         resized = cv2.resize(img_rgb, (feature_preprocess_cfg["width"], feature_preprocess_cfg["height"]))
         x = tm.prepare_inputs(np.expand_dims(resized, axis=0).astype(np.float32), feature_preprocess_cfg)
         with gpu_lock, torch.no_grad():
-            diversity_vector = feature_extractor(x.to(tm.DEVICE)).cpu().numpy().flatten()[:2].tolist()
+            # 384次元の埋め込みをそのまま返す(先頭2要素への機械的な切り出しは意味のある2次元化ではないため廃止)。
+            # 2次元への圧縮(PCA)はジョブ内の全画像が揃った時点で /reduce_diversity がまとめて行う。
+            diversity_vector = feature_extractor(x.to(tm.DEVICE)).cpu().numpy().flatten().tolist()
 
         return {"saturation": saturation, "brightness": brightness, "sharpness": sharpness,
                 "diversity_vector": diversity_vector, "message": "Analysis successful"}
     except Exception as e:
         logger.error(f"🚨 エラー: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _pca_2d(vectors: np.ndarray) -> np.ndarray:
+    """SVDベースのPCAで高次元ベクトル群を2次元に射影する(scikit-learn非依存)。
+    データ点が2点未満、または分散が潰れている場合は原点(0,0)を返す。"""
+    n = vectors.shape[0]
+    if n < 2:
+        return np.zeros((n, 2), dtype=np.float64)
+    mean = vectors.mean(axis=0)
+    centered = vectors - mean
+    try:
+        _, _, vt = np.linalg.svd(centered, full_matrices=False)
+    except np.linalg.LinAlgError:
+        return np.zeros((n, 2), dtype=np.float64)
+    k = min(2, vt.shape[0])
+    projected = centered @ vt[:k].T
+    if k < 2:
+        projected = np.pad(projected, ((0, 0), (0, 2 - k)))
+    return projected
+
+
+# ジョブに属する全画像のdiversity_vector(高次元埋め込み)をまとめてPCAで2次元化する。
+# Go側 GetImageEvaluationDB が表示リクエストのたびに呼び出す(バッチ処理・永続化はしない)。
+@app.post("/reduce_diversity", response_model=ReduceDiversityResponse)
+async def reduce_diversity(payload: ReduceDiversityRequest, authorization: str = Header(None)):
+    verify_token(authorization)
+    try:
+        if not payload.vectors:
+            return {"points": []}
+
+        lengths = {len(v) for v in payload.vectors}
+        if len(lengths) > 1:
+            raise HTTPException(status_code=400, detail=f"vectors have inconsistent lengths: {sorted(lengths)}")
+
+        arr = np.array(payload.vectors, dtype=np.float64)
+        points = _pca_2d(arr)
+        return {"points": points.tolist()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"🚨 reduce_diversity エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/process", status_code=202)
 async def process_ai(
