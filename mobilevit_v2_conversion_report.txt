@@ -1,0 +1,13 @@
+MobileViT-v2 (mobilevitv2_100) 変換前後比較レポート
+サンプル画像数: 5
+入力サイズ: 256x256, mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0]
+softmax確率の最大絶対誤差: 0.000057
+softmax確率の平均絶対誤差: 0.000024
+Top-1一致率(PyTorch vs TFLite): 100.0%
+
+画像ごとの詳細:
+  20260207_093207_393121_input.jpg: torch_top1=2(0.2172) tflite_top1=2(0.2172)
+  20260207_093207_422413_input.jpg: torch_top1=1(0.2175) tflite_top1=1(0.2175)
+  20260207_093207_439774_input.jpg: torch_top1=1(0.2131) tflite_top1=1(0.2131)
+  20260207_093207_470646_input.jpg: torch_top1=4(0.2415) tflite_top1=4(0.2415)
+  20260207_093207_488605_input.jpg: torch_top1=1(0.2195) tflite_top1=1(0.2195)

@@ -1,0 +1,571 @@
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+podman build -f ./Dockerfile -t ai-image-classification_python-api --no-cache .
+STEP 1/8: FROM python:3.11-slim
+STEP 2/8: WORKDIR /app
+--> d4f574df5d0a
+STEP 3/8: RUN apt-get update && apt-get install -y     libgl1     libglib2.0-0     && rm -rf /var/lib/apt/lists/*
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_CHOWN: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_DAC_OVERRIDE: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_FOWNER: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_FSETID: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_KILL: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_NET_BIND_SERVICE: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_SETFCAP: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_SETGID: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_SETPCAP: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_SETUID: operation not permitted"
+time="2026-07-11T10:42:37+09:00" level=warning msg="can't raise ambient capability CAP_SYS_CHROOT: operation not permitted"
+Get:1 http://deb.debian.org/debian trixie InRelease [140 kB]
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9671 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [225 kB]
+Fetched 10.1 MB in 2s (6065 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libatomic1 libdrm-amdgpu1 libdrm-common libdrm-intel1 libdrm2 libedit2
+  libelf1t64 libexpat1 libgbm1 libgl1-mesa-dri libglib2.0-data libglvnd0
+  libglx-mesa0 libglx0 libllvm19 libpciaccess0 libsensors-config libsensors5
+  libvulkan1 libwayland-client0 libwayland-server0 libx11-6 libx11-data
+  libx11-xcb1 libxau6 libxcb-dri3-0 libxcb-glx0 libxcb-present0 libxcb-randr0
+  libxcb-shm0 libxcb-sync1 libxcb-xfixes0 libxcb1 libxdmcp6 libxext6 libxml2
+  libxshmfence1 libxxf86vm1 libz3-4 mesa-libgallium mesa-vulkan-drivers
+  shared-mime-info xdg-user-dirs
+Suggested packages:
+  low-memory-monitor pciutils lm-sensors
+The following NEW packages will be installed:
+  libatomic1 libdrm-amdgpu1 libdrm-common libdrm-intel1 libdrm2 libedit2
+  libelf1t64 libexpat1 libgbm1 libgl1 libgl1-mesa-dri libglib2.0-0t64
+  libglib2.0-data libglvnd0 libglx-mesa0 libglx0 libllvm19 libpciaccess0
+  libsensors-config libsensors5 libvulkan1 libwayland-client0
+  libwayland-server0 libx11-6 libx11-data libx11-xcb1 libxau6 libxcb-dri3-0
+  libxcb-glx0 libxcb-present0 libxcb-randr0 libxcb-shm0 libxcb-sync1
+  libxcb-xfixes0 libxcb1 libxdmcp6 libxext6 libxml2 libxshmfence1 libxxf86vm1
+  libz3-4 mesa-libgallium mesa-vulkan-drivers shared-mime-info xdg-user-dirs
+0 upgraded, 45 newly installed, 0 to remove and 12 not upgraded.
+Need to get 66.4 MB of archives.
+After this operation, 317 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian trixie/main amd64 libexpat1 amd64 2.7.1-2 [108 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 libatomic1 amd64 14.2.0-19 [9308 B]
+Get:3 http://deb.debian.org/debian trixie/main amd64 libdrm-common all 2.4.124-2 [8288 B]
+Get:4 http://deb.debian.org/debian trixie/main amd64 libdrm2 amd64 2.4.124-2 [39.0 kB]
+Get:5 http://deb.debian.org/debian trixie/main amd64 libdrm-amdgpu1 amd64 2.4.124-2 [22.6 kB]
+Get:6 http://deb.debian.org/debian trixie/main amd64 libpciaccess0 amd64 0.17-3+b3 [51.9 kB]
+Get:7 http://deb.debian.org/debian trixie/main amd64 libdrm-intel1 amd64 2.4.124-2 [64.1 kB]
+Get:8 http://deb.debian.org/debian trixie/main amd64 libedit2 amd64 3.1-20250104-1 [93.8 kB]
+Get:9 http://deb.debian.org/debian trixie/main amd64 libelf1t64 amd64 0.192-4 [189 kB]
+Get:10 http://deb.debian.org/debian trixie/main amd64 libwayland-server0 amd64 1.23.1-3 [34.4 kB]
+Get:11 http://deb.debian.org/debian trixie/main amd64 libxml2 amd64 2.12.7+dfsg+really2.9.14-2.1+deb13u2 [698 kB]
+Get:12 http://deb.debian.org/debian trixie/main amd64 libz3-4 amd64 4.13.3-1 [8560 kB]
+Get:13 http://deb.debian.org/debian trixie/main amd64 libllvm19 amd64 1:19.1.7-3+b1 [26.0 MB]
+Get:14 http://deb.debian.org/debian trixie/main amd64 libsensors-config all 1:3.6.2-2 [16.2 kB]
+Get:15 http://deb.debian.org/debian trixie/main amd64 libsensors5 amd64 1:3.6.2-2 [37.5 kB]
+Get:16 http://deb.debian.org/debian trixie/main amd64 libxau6 amd64 1:1.0.11-1 [20.4 kB]
+Get:17 http://deb.debian.org/debian trixie/main amd64 libxdmcp6 amd64 1:1.1.5-1 [27.8 kB]
+Get:18 http://deb.debian.org/debian trixie/main amd64 libxcb1 amd64 1.17.0-2+b1 [144 kB]
+Get:19 http://deb.debian.org/debian trixie/main amd64 libx11-data all 2:1.8.12-1 [343 kB]
+Get:20 http://deb.debian.org/debian trixie/main amd64 libx11-6 amd64 2:1.8.12-1 [815 kB]
+Get:21 http://deb.debian.org/debian trixie/main amd64 libx11-xcb1 amd64 2:1.8.12-1 [247 kB]
+Get:22 http://deb.debian.org/debian trixie/main amd64 libxcb-dri3-0 amd64 1.17.0-2+b1 [107 kB]
+Get:23 http://deb.debian.org/debian trixie/main amd64 libxcb-present0 amd64 1.17.0-2+b1 [106 kB]
+Get:24 http://deb.debian.org/debian trixie/main amd64 libxcb-randr0 amd64 1.17.0-2+b1 [117 kB]
+Get:25 http://deb.debian.org/debian trixie/main amd64 libxcb-sync1 amd64 1.17.0-2+b1 [109 kB]
+Get:26 http://deb.debian.org/debian trixie/main amd64 libxcb-xfixes0 amd64 1.17.0-2+b1 [109 kB]
+Get:27 http://deb.debian.org/debian trixie/main amd64 libxshmfence1 amd64 1.3.3-1 [10.9 kB]
+Get:28 http://deb.debian.org/debian trixie/main amd64 mesa-libgallium amd64 25.0.7-2 [9629 kB]
+Get:29 http://deb.debian.org/debian trixie/main amd64 libgbm1 amd64 25.0.7-2 [44.4 kB]
+Get:30 http://deb.debian.org/debian trixie/main amd64 libglvnd0 amd64 1.7.0-1+b2 [52.0 kB]
+Get:31 http://deb.debian.org/debian trixie/main amd64 libxcb-glx0 amd64 1.17.0-2+b1 [122 kB]
+Get:32 http://deb.debian.org/debian trixie/main amd64 libxcb-shm0 amd64 1.17.0-2+b1 [105 kB]
+Get:33 http://deb.debian.org/debian trixie/main amd64 libxext6 amd64 2:1.3.4-1+b3 [50.4 kB]
+Get:34 http://deb.debian.org/debian trixie/main amd64 libxxf86vm1 amd64 1:1.1.4-1+b4 [19.3 kB]
+Get:35 http://deb.debian.org/debian trixie/main amd64 libvulkan1 amd64 1.4.309.0-1 [130 kB]
+Get:36 http://deb.debian.org/debian trixie/main amd64 libgl1-mesa-dri amd64 25.0.7-2 [46.1 kB]
+Get:37 http://deb.debian.org/debian trixie/main amd64 libglx-mesa0 amd64 25.0.7-2 [143 kB]
+Get:38 http://deb.debian.org/debian trixie/main amd64 libglx0 amd64 1.7.0-1+b2 [34.9 kB]
+Get:39 http://deb.debian.org/debian trixie/main amd64 libgl1 amd64 1.7.0-1+b2 [89.5 kB]
+Get:40 http://deb.debian.org/debian trixie/main amd64 libglib2.0-0t64 amd64 2.84.4-3~deb13u3 [1519 kB]
+Get:41 http://deb.debian.org/debian trixie/main amd64 libglib2.0-data all 2.84.4-3~deb13u3 [1287 kB]
+Get:42 http://deb.debian.org/debian trixie/main amd64 libwayland-client0 amd64 1.23.1-3 [26.8 kB]
+Get:43 http://deb.debian.org/debian trixie/main amd64 mesa-vulkan-drivers amd64 25.0.7-2 [14.2 MB]
+Get:44 http://deb.debian.org/debian trixie/main amd64 shared-mime-info amd64 2.4-5+b2 [760 kB]
+Get:45 http://deb.debian.org/debian trixie/main amd64 xdg-user-dirs amd64 0.18-2 [53.2 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 45.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+Fetched 66.4 MB in 10s (6736 kB/s)
+Selecting previously unselected package libexpat1:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5645 files and directories currently installed.)
+Preparing to unpack .../00-libexpat1_2.7.1-2_amd64.deb ...
+Unpacking libexpat1:amd64 (2.7.1-2) ...
+Selecting previously unselected package libatomic1:amd64.
+Preparing to unpack .../01-libatomic1_14.2.0-19_amd64.deb ...
+Unpacking libatomic1:amd64 (14.2.0-19) ...
+Selecting previously unselected package libdrm-common.
+Preparing to unpack .../02-libdrm-common_2.4.124-2_all.deb ...
+Unpacking libdrm-common (2.4.124-2) ...
+Selecting previously unselected package libdrm2:amd64.
+Preparing to unpack .../03-libdrm2_2.4.124-2_amd64.deb ...
+Unpacking libdrm2:amd64 (2.4.124-2) ...
+Selecting previously unselected package libdrm-amdgpu1:amd64.
+Preparing to unpack .../04-libdrm-amdgpu1_2.4.124-2_amd64.deb ...
+Unpacking libdrm-amdgpu1:amd64 (2.4.124-2) ...
+Selecting previously unselected package libpciaccess0:amd64.
+Preparing to unpack .../05-libpciaccess0_0.17-3+b3_amd64.deb ...
+Unpacking libpciaccess0:amd64 (0.17-3+b3) ...
+Selecting previously unselected package libdrm-intel1:amd64.
+Preparing to unpack .../06-libdrm-intel1_2.4.124-2_amd64.deb ...
+Unpacking libdrm-intel1:amd64 (2.4.124-2) ...
+Selecting previously unselected package libedit2:amd64.
+Preparing to unpack .../07-libedit2_3.1-20250104-1_amd64.deb ...
+Unpacking libedit2:amd64 (3.1-20250104-1) ...
+Selecting previously unselected package libelf1t64:amd64.
+Preparing to unpack .../08-libelf1t64_0.192-4_amd64.deb ...
+Unpacking libelf1t64:amd64 (0.192-4) ...
+Selecting previously unselected package libwayland-server0:amd64.
+Preparing to unpack .../09-libwayland-server0_1.23.1-3_amd64.deb ...
+Unpacking libwayland-server0:amd64 (1.23.1-3) ...
+Selecting previously unselected package libxml2:amd64.
+Preparing to unpack .../10-libxml2_2.12.7+dfsg+really2.9.14-2.1+deb13u2_amd64.deb ...
+Unpacking libxml2:amd64 (2.12.7+dfsg+really2.9.14-2.1+deb13u2) ...
+Selecting previously unselected package libz3-4:amd64.
+Preparing to unpack .../11-libz3-4_4.13.3-1_amd64.deb ...
+Unpacking libz3-4:amd64 (4.13.3-1) ...
+Selecting previously unselected package libllvm19:amd64.
+Preparing to unpack .../12-libllvm19_1%3a19.1.7-3+b1_amd64.deb ...
+Unpacking libllvm19:amd64 (1:19.1.7-3+b1) ...
+Selecting previously unselected package libsensors-config.
+Preparing to unpack .../13-libsensors-config_1%3a3.6.2-2_all.deb ...
+Unpacking libsensors-config (1:3.6.2-2) ...
+Selecting previously unselected package libsensors5:amd64.
+Preparing to unpack .../14-libsensors5_1%3a3.6.2-2_amd64.deb ...
+Unpacking libsensors5:amd64 (1:3.6.2-2) ...
+Selecting previously unselected package libxau6:amd64.
+Preparing to unpack .../15-libxau6_1%3a1.0.11-1_amd64.deb ...
+Unpacking libxau6:amd64 (1:1.0.11-1) ...
+Selecting previously unselected package libxdmcp6:amd64.
+Preparing to unpack .../16-libxdmcp6_1%3a1.1.5-1_amd64.deb ...
+Unpacking libxdmcp6:amd64 (1:1.1.5-1) ...
+Selecting previously unselected package libxcb1:amd64.
+Preparing to unpack .../17-libxcb1_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb1:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libx11-data.
+Preparing to unpack .../18-libx11-data_2%3a1.8.12-1_all.deb ...
+Unpacking libx11-data (2:1.8.12-1) ...
+Selecting previously unselected package libx11-6:amd64.
+Preparing to unpack .../19-libx11-6_2%3a1.8.12-1_amd64.deb ...
+Unpacking libx11-6:amd64 (2:1.8.12-1) ...
+Selecting previously unselected package libx11-xcb1:amd64.
+Preparing to unpack .../20-libx11-xcb1_2%3a1.8.12-1_amd64.deb ...
+Unpacking libx11-xcb1:amd64 (2:1.8.12-1) ...
+Selecting previously unselected package libxcb-dri3-0:amd64.
+Preparing to unpack .../21-libxcb-dri3-0_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-dri3-0:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxcb-present0:amd64.
+Preparing to unpack .../22-libxcb-present0_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-present0:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxcb-randr0:amd64.
+Preparing to unpack .../23-libxcb-randr0_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-randr0:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxcb-sync1:amd64.
+Preparing to unpack .../24-libxcb-sync1_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-sync1:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxcb-xfixes0:amd64.
+Preparing to unpack .../25-libxcb-xfixes0_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-xfixes0:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxshmfence1:amd64.
+Preparing to unpack .../26-libxshmfence1_1.3.3-1_amd64.deb ...
+Unpacking libxshmfence1:amd64 (1.3.3-1) ...
+Selecting previously unselected package mesa-libgallium:amd64.
+Preparing to unpack .../27-mesa-libgallium_25.0.7-2_amd64.deb ...
+Unpacking mesa-libgallium:amd64 (25.0.7-2) ...
+Selecting previously unselected package libgbm1:amd64.
+Preparing to unpack .../28-libgbm1_25.0.7-2_amd64.deb ...
+Unpacking libgbm1:amd64 (25.0.7-2) ...
+Selecting previously unselected package libglvnd0:amd64.
+Preparing to unpack .../29-libglvnd0_1.7.0-1+b2_amd64.deb ...
+Unpacking libglvnd0:amd64 (1.7.0-1+b2) ...
+Selecting previously unselected package libxcb-glx0:amd64.
+Preparing to unpack .../30-libxcb-glx0_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-glx0:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxcb-shm0:amd64.
+Preparing to unpack .../31-libxcb-shm0_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb-shm0:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libxext6:amd64.
+Preparing to unpack .../32-libxext6_2%3a1.3.4-1+b3_amd64.deb ...
+Unpacking libxext6:amd64 (2:1.3.4-1+b3) ...
+Selecting previously unselected package libxxf86vm1:amd64.
+Preparing to unpack .../33-libxxf86vm1_1%3a1.1.4-1+b4_amd64.deb ...
+Unpacking libxxf86vm1:amd64 (1:1.1.4-1+b4) ...
+Selecting previously unselected package libvulkan1:amd64.
+Preparing to unpack .../34-libvulkan1_1.4.309.0-1_amd64.deb ...
+Unpacking libvulkan1:amd64 (1.4.309.0-1) ...
+Selecting previously unselected package libgl1-mesa-dri:amd64.
+Preparing to unpack .../35-libgl1-mesa-dri_25.0.7-2_amd64.deb ...
+Unpacking libgl1-mesa-dri:amd64 (25.0.7-2) ...
+Selecting previously unselected package libglx-mesa0:amd64.
+Preparing to unpack .../36-libglx-mesa0_25.0.7-2_amd64.deb ...
+Unpacking libglx-mesa0:amd64 (25.0.7-2) ...
+Selecting previously unselected package libglx0:amd64.
+Preparing to unpack .../37-libglx0_1.7.0-1+b2_amd64.deb ...
+Unpacking libglx0:amd64 (1.7.0-1+b2) ...
+Selecting previously unselected package libgl1:amd64.
+Preparing to unpack .../38-libgl1_1.7.0-1+b2_amd64.deb ...
+Unpacking libgl1:amd64 (1.7.0-1+b2) ...
+Selecting previously unselected package libglib2.0-0t64:amd64.
+Preparing to unpack .../39-libglib2.0-0t64_2.84.4-3~deb13u3_amd64.deb ...
+Unpacking libglib2.0-0t64:amd64 (2.84.4-3~deb13u3) ...
+Selecting previously unselected package libglib2.0-data.
+Preparing to unpack .../40-libglib2.0-data_2.84.4-3~deb13u3_all.deb ...
+Unpacking libglib2.0-data (2.84.4-3~deb13u3) ...
+Selecting previously unselected package libwayland-client0:amd64.
+Preparing to unpack .../41-libwayland-client0_1.23.1-3_amd64.deb ...
+Unpacking libwayland-client0:amd64 (1.23.1-3) ...
+Selecting previously unselected package mesa-vulkan-drivers:amd64.
+Preparing to unpack .../42-mesa-vulkan-drivers_25.0.7-2_amd64.deb ...
+Unpacking mesa-vulkan-drivers:amd64 (25.0.7-2) ...
+Selecting previously unselected package shared-mime-info.
+Preparing to unpack .../43-shared-mime-info_2.4-5+b2_amd64.deb ...
+Unpacking shared-mime-info (2.4-5+b2) ...
+Selecting previously unselected package xdg-user-dirs.
+Preparing to unpack .../44-xdg-user-dirs_0.18-2_amd64.deb ...
+Unpacking xdg-user-dirs (0.18-2) ...
+Setting up libexpat1:amd64 (2.7.1-2) ...
+Setting up libwayland-server0:amd64 (1.23.1-3) ...
+Setting up libpciaccess0:amd64 (0.17-3+b3) ...
+Setting up libxau6:amd64 (1:1.0.11-1) ...
+Setting up libxdmcp6:amd64 (1:1.1.5-1) ...
+Setting up libxcb1:amd64 (1.17.0-2+b1) ...
+Setting up libxcb-xfixes0:amd64 (1.17.0-2+b1) ...
+Setting up xdg-user-dirs (0.18-2) ...
+Setting up libglvnd0:amd64 (1.7.0-1+b2) ...
+Setting up libxcb-glx0:amd64 (1.17.0-2+b1) ...
+Setting up libedit2:amd64 (3.1-20250104-1) ...
+Setting up libsensors-config (1:3.6.2-2) ...
+Setting up libxcb-shm0:amd64 (1.17.0-2+b1) ...
+Setting up libelf1t64:amd64 (0.192-4) ...
+Setting up libxcb-present0:amd64 (1.17.0-2+b1) ...
+Setting up libz3-4:amd64 (4.13.3-1) ...
+Setting up libglib2.0-data (2.84.4-3~deb13u3) ...
+Setting up libx11-data (2:1.8.12-1) ...
+Setting up libxcb-sync1:amd64 (1.17.0-2+b1) ...
+Setting up libatomic1:amd64 (14.2.0-19) ...
+Setting up libsensors5:amd64 (1:3.6.2-2) ...
+Setting up libvulkan1:amd64 (1.4.309.0-1) ...
+Setting up libxshmfence1:amd64 (1.3.3-1) ...
+Setting up libxcb-randr0:amd64 (1.17.0-2+b1) ...
+Setting up libx11-6:amd64 (2:1.8.12-1) ...
+Setting up libdrm-common (2.4.124-2) ...
+Setting up libxml2:amd64 (2.12.7+dfsg+really2.9.14-2.1+deb13u2) ...
+Setting up libwayland-client0:amd64 (1.23.1-3) ...
+Setting up libxcb-dri3-0:amd64 (1.17.0-2+b1) ...
+Setting up libllvm19:amd64 (1:19.1.7-3+b1) ...
+Setting up libx11-xcb1:amd64 (2:1.8.12-1) ...
+Setting up libxext6:amd64 (2:1.3.4-1+b3) ...
+Setting up libxxf86vm1:amd64 (1:1.1.4-1+b4) ...
+Setting up libglib2.0-0t64:amd64 (2.84.4-3~deb13u3) ...
+No schema files found: doing nothing.
+Setting up shared-mime-info (2.4-5+b2) ...
+Setting up libdrm2:amd64 (2.4.124-2) ...
+Setting up libdrm-amdgpu1:amd64 (2.4.124-2) ...
+Setting up mesa-vulkan-drivers:amd64 (25.0.7-2) ...
+Setting up libdrm-intel1:amd64 (2.4.124-2) ...
+Setting up mesa-libgallium:amd64 (25.0.7-2) ...
+Setting up libgbm1:amd64 (25.0.7-2) ...
+Setting up libgl1-mesa-dri:amd64 (25.0.7-2) ...
+Setting up libglx-mesa0:amd64 (25.0.7-2) ...
+Setting up libglx0:amd64 (1.7.0-1+b2) ...
+Setting up libgl1:amd64 (1.7.0-1+b2) ...
+Processing triggers for libc-bin (2.41-12+deb13u2) ...
+--> f7cf3868fdcf
+STEP 4/8: RUN pip install --upgrade pip
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_CHOWN: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_DAC_OVERRIDE: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_FOWNER: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_FSETID: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_KILL: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_NET_BIND_SERVICE: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_SETFCAP: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_SETGID: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_SETPCAP: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_SETUID: operation not permitted"
+time="2026-07-11T10:43:07+09:00" level=warning msg="can't raise ambient capability CAP_SYS_CHROOT: operation not permitted"
+Requirement already satisfied: pip in /usr/local/lib/python3.11/site-packages (24.0)
+Collecting pip
+  Downloading pip-26.1.2-py3-none-any.whl.metadata (4.6 kB)
+Downloading pip-26.1.2-py3-none-any.whl (1.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 13.5 MB/s eta 0:00:00
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 24.0
+    Uninstalling pip-24.0:
+      Successfully uninstalled pip-24.0
+Successfully installed pip-26.1.2
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+--> 714b281c541a
+STEP 5/8: COPY requirements.txt .
+--> eade41180008
+STEP 6/8: RUN pip install --no-cache-dir -v -r requirements.txt
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_CHOWN: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_DAC_OVERRIDE: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_FOWNER: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_FSETID: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_KILL: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_NET_BIND_SERVICE: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_SETFCAP: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_SETGID: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_SETPCAP: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_SETUID: operation not permitted"
+time="2026-07-11T10:43:14+09:00" level=warning msg="can't raise ambient capability CAP_SYS_CHROOT: operation not permitted"
+Using pip 26.1.2 from /usr/local/lib/python3.11/site-packages/pip (python 3.11)
+Collecting fastapi>=0.115 (from -r requirements.txt (line 2))
+  Obtaining dependency information for fastapi>=0.115 from https://files.pythonhosted.org/packages/9e/7c/8e3c6ad324ea5cb36604fc3f968554887891c316d9dfde57761611d907ad/fastapi-0.139.0-py3-none-any.whl.metadata
+  Downloading fastapi-0.139.0-py3-none-any.whl.metadata (26 kB)
+Collecting uvicorn>=0.30 (from uvicorn[standard]>=0.30->-r requirements.txt (line 3))
+  Obtaining dependency information for uvicorn>=0.30 from https://files.pythonhosted.org/packages/45/ec/dbb7e5a6b91f86bfb9eb7d2988a2730907b6a729875b949c7f022e8b88fa/uvicorn-0.51.0-py3-none-any.whl.metadata
+  Downloading uvicorn-0.51.0-py3-none-any.whl.metadata (6.6 kB)
+Collecting python-multipart>=0.0.9 (from -r requirements.txt (line 4))
+  Obtaining dependency information for python-multipart>=0.0.9 from https://files.pythonhosted.org/packages/e1/04/e8135ebd1ad02c56ec633277529b2602ff99ff634be76cdba5744cf554fd/python_multipart-0.0.32-py3-none-any.whl.metadata
+  Downloading python_multipart-0.0.32-py3-none-any.whl.metadata (2.1 kB)
+Collecting pydantic>=2.9 (from -r requirements.txt (line 5))
+  Obtaining dependency information for pydantic>=2.9 from https://files.pythonhosted.org/packages/fd/7b/122376b1fd3c62c1ed9dc80c931ace4844b3c55407b6fb2d199377c9736f/pydantic-2.13.4-py3-none-any.whl.metadata
+  Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+Collecting python-dotenv>=1.0 (from -r requirements.txt (line 8))
+  Obtaining dependency information for python-dotenv>=1.0 from https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl.metadata
+  Downloading python_dotenv-1.2.2-py3-none-any.whl.metadata (27 kB)
+  Link requires a different Python (3.11.15 not in: '>=3.7,<3.11'): https://files.pythonhosted.org/packages/3a/be/650f9c091ef71cb01d735775d554e068752d3ff63d7943b26316dc401749/numpy-1.21.2.zip (from https://pypi.org/simple/numpy/) (requires-python:>=3.7,<3.11)
+  Link requires a different Python (3.11.15 not in: '>=3.7,<3.11'): https://files.pythonhosted.org/packages/5f/d6/ad58ded26556eaeaa8c971e08b6466f17c4ac4d786cd3d800e26ce59cc01/numpy-1.21.3.zip (from https://pypi.org/simple/numpy/) (requires-python:>=3.7,<3.11)
+  Link requires a different Python (3.11.15 not in: '>=3.7,<3.11'): https://files.pythonhosted.org/packages/fb/48/b0708ebd7718a8933f0d3937513ef8ef2f4f04529f1f66ca86d873043921/numpy-1.21.4.zip (from https://pypi.org/simple/numpy/) (requires-python:>=3.7,<3.11)
+  Link requires a different Python (3.11.15 not in: '>=3.7,<3.11'): https://files.pythonhosted.org/packages/c2/a8/a924a09492bdfee8c2ec3094d0a13f2799800b4fdc9c890738aeeb12c72e/numpy-1.21.5.zip (from https://pypi.org/simple/numpy/) (requires-python:>=3.7,<3.11)
+  Link requires a different Python (3.11.15 not in: '>=3.7,<3.11'): https://files.pythonhosted.org/packages/45/b7/de7b8e67f2232c26af57c205aaad29fe17754f793404f59c8a730c7a191a/numpy-1.21.6.zip (from https://pypi.org/simple/numpy/) (requires-python:>=3.7,<3.11)
+  Link requires a different Python (3.11.15 not in: '>=3.12'): https://files.pythonhosted.org/packages/d3/e1/f2fe8f6113a657a1da83b358b16755e528a602c6976a43724a88f42b482a/numpy-2.5.0rc1.tar.gz (from https://pypi.org/simple/numpy/) (requires-python:>=3.12)
+  Link requires a different Python (3.11.15 not in: '>=3.12'): https://files.pythonhosted.org/packages/e7/05/3d27272d30698dc0ecb7fdfaa41ad70303b444f81722bb99bce1d818638a/numpy-2.5.0.tar.gz (from https://pypi.org/simple/numpy/) (requires-python:>=3.12)
+  Link requires a different Python (3.11.15 not in: '>=3.12'): https://files.pythonhosted.org/packages/22/fd/89965aa4ac08c74998539fcbf24fa3540f3e15237fbeb6bcf9c908f4aade/numpy-2.5.1.tar.gz (from https://pypi.org/simple/numpy/) (requires-python:>=3.12)
+Collecting numpy<2.0,>=1.26 (from -r requirements.txt (line 9))
+  Obtaining dependency information for numpy<2.0,>=1.26 from https://files.pythonhosted.org/packages/3a/d0/edc009c27b406c4f9cbc79274d6e46d634d139075492ad055e3d68445925/numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+Collecting requests>=2.32 (from -r requirements.txt (line 10))
+  Obtaining dependency information for requests>=2.32 from https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl.metadata
+  Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+Collecting opencv-python-headless>=4.10 (from -r requirements.txt (line 11))
+  Obtaining dependency information for opencv-python-headless>=4.10 from https://files.pythonhosted.org/packages/9b/21/f6ef335f6e65724aa78b8d792b48d40a48c381715f1e62f5a5049e09d07e/opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl.metadata
+  Downloading opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl.metadata (19 kB)
+Collecting tensorflow<2.20,>=2.19 (from tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for tensorflow<2.20,>=2.19 from https://files.pythonhosted.org/packages/f6/58/34f49a802d6d1f1eb6fe89bc9ff52e2bee19d5c3461059a55702fb7e5fb3/tensorflow-2.19.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading tensorflow-2.19.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+Collecting torch==2.6.0 (from -r requirements.txt (line 17))
+  Obtaining dependency information for torch==2.6.0 from https://files.pythonhosted.org/packages/78/a9/97cbbc97002fff0de394a2da2cdfa859481fdca36996d7bd845d50aa9d8d/torch-2.6.0-cp311-cp311-manylinux1_x86_64.whl.metadata
+  Downloading torch-2.6.0-cp311-cp311-manylinux1_x86_64.whl.metadata (28 kB)
+Collecting torchvision>=0.20 (from -r requirements.txt (line 18))
+  Obtaining dependency information for torchvision>=0.20 from https://files.pythonhosted.org/packages/0b/9b/f1e68e861d4462e3e195a642c2b448e7b7d3fad5f209487162b9a2133d9b/torchvision-0.28.0-cp311-cp311-manylinux_2_28_x86_64.whl.metadata
+  Downloading torchvision-0.28.0-cp311-cp311-manylinux_2_28_x86_64.whl.metadata (5.6 kB)
+Collecting timm>=1.0 (from -r requirements.txt (line 19))
+  Obtaining dependency information for timm>=1.0 from https://files.pythonhosted.org/packages/1f/2e/26bab7686ff4aed48f8f5f6c23e2aa37b7a37ddd9effe3aa61e908fd518f/timm-1.0.27-py3-none-any.whl.metadata
+  Downloading timm-1.0.27-py3-none-any.whl.metadata (40 kB)
+Collecting litert-torch (from -r requirements.txt (line 22))
+  Obtaining dependency information for litert-torch from https://files.pythonhosted.org/packages/1e/f2/b9b8cf70b0af634e18e3938dd10c8e6da0ecde5f7473f503a4dfd560e2ed/litert_torch-0.9.1-py3-none-any.whl.metadata
+  Downloading litert_torch-0.9.1-py3-none-any.whl.metadata (2.4 kB)
+Collecting ai-edge-litert (from -r requirements.txt (line 23))
+  Obtaining dependency information for ai-edge-litert from https://files.pythonhosted.org/packages/b2/b9/c7153b2f6f37bc521876b8fa86125eb618bba9d84b20ba0bc5c05795eda7/ai_edge_litert-2.1.6-cp311-cp311-manylinux_2_27_x86_64.whl.metadata
+  Downloading ai_edge_litert-2.1.6-cp311-cp311-manylinux_2_27_x86_64.whl.metadata (2.3 kB)
+Collecting filelock (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for filelock from https://files.pythonhosted.org/packages/60/02/be4a57b60c7149b55b9e3b3c13f609cd8eb5307c751f22bd8fb8d262e75b/filelock-3.29.7-py3-none-any.whl.metadata
+  Downloading filelock-3.29.7-py3-none-any.whl.metadata (2.0 kB)
+Collecting typing-extensions>=4.10.0 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for typing-extensions>=4.10.0 from https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl.metadata
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting networkx (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for networkx from https://files.pythonhosted.org/packages/9e/c9/b2622292ea83fbb4ec318f5b9ab867d0a28ab43c5717bb85b0a5f6b3b0a4/networkx-3.6.1-py3-none-any.whl.metadata
+  Downloading networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+Collecting jinja2 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for jinja2 from https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl.metadata
+  Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting fsspec (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for fsspec from https://files.pythonhosted.org/packages/e5/22/4222d7ddf3da30f363edaa98e329c2bce6c65497c9cb2810931c8b2c0fbc/fsspec-2026.6.0-py3-none-any.whl.metadata
+  Downloading fsspec-2026.6.0-py3-none-any.whl.metadata (10 kB)
+Collecting nvidia-cuda-nvrtc-cu12==12.4.127 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cuda-nvrtc-cu12==12.4.127 from https://files.pythonhosted.org/packages/2c/14/91ae57cd4db3f9ef7aa99f4019cfa8d54cb4caa7e00975df6467e9725a9f/nvidia_cuda_nvrtc_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cuda_nvrtc_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)
+Collecting nvidia-cuda-runtime-cu12==12.4.127 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cuda-runtime-cu12==12.4.127 from https://files.pythonhosted.org/packages/ea/27/1795d86fe88ef397885f2e580ac37628ed058a92ed2c39dc8eac3adf0619/nvidia_cuda_runtime_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cuda_runtime_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)
+Collecting nvidia-cuda-cupti-cu12==12.4.127 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cuda-cupti-cu12==12.4.127 from https://files.pythonhosted.org/packages/67/42/f4f60238e8194a3106d06a058d494b18e006c10bb2b915655bd9f6ea4cb1/nvidia_cuda_cupti_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cuda_cupti_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata (1.6 kB)
+Collecting nvidia-cudnn-cu12==9.1.0.70 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cudnn-cu12==9.1.0.70 from https://files.pythonhosted.org/packages/9f/fd/713452cd72343f682b1c7b9321e23829f00b842ceaedcda96e742ea0b0b3/nvidia_cudnn_cu12-9.1.0.70-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cudnn_cu12-9.1.0.70-py3-none-manylinux2014_x86_64.whl.metadata (1.6 kB)
+Collecting nvidia-cublas-cu12==12.4.5.8 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cublas-cu12==12.4.5.8 from https://files.pythonhosted.org/packages/ae/71/1c91302526c45ab494c23f61c7a84aa568b8c1f9d196efa5993957faf906/nvidia_cublas_cu12-12.4.5.8-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cublas_cu12-12.4.5.8-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)
+Collecting nvidia-cufft-cu12==11.2.1.3 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cufft-cu12==11.2.1.3 from https://files.pythonhosted.org/packages/27/94/3266821f65b92b3138631e9c8e7fe1fb513804ac934485a8d05776e1dd43/nvidia_cufft_cu12-11.2.1.3-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cufft_cu12-11.2.1.3-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)
+Collecting nvidia-curand-cu12==10.3.5.147 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-curand-cu12==10.3.5.147 from https://files.pythonhosted.org/packages/8a/6d/44ad094874c6f1b9c654f8ed939590bdc408349f137f9b98a3a23ccec411/nvidia_curand_cu12-10.3.5.147-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_curand_cu12-10.3.5.147-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)
+Collecting nvidia-cusolver-cu12==11.6.1.9 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cusolver-cu12==11.6.1.9 from https://files.pythonhosted.org/packages/3a/e1/5b9089a4b2a4790dfdea8b3a006052cfecff58139d5a4e34cb1a51df8d6f/nvidia_cusolver_cu12-11.6.1.9-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cusolver_cu12-11.6.1.9-py3-none-manylinux2014_x86_64.whl.metadata (1.6 kB)
+Collecting nvidia-cusparse-cu12==12.3.1.170 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cusparse-cu12==12.3.1.170 from https://files.pythonhosted.org/packages/db/f7/97a9ea26ed4bbbfc2d470994b8b4f338ef663be97b8f677519ac195e113d/nvidia_cusparse_cu12-12.3.1.170-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cusparse_cu12-12.3.1.170-py3-none-manylinux2014_x86_64.whl.metadata (1.6 kB)
+Collecting nvidia-cusparselt-cu12==0.6.2 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-cusparselt-cu12==0.6.2 from https://files.pythonhosted.org/packages/78/a8/bcbb63b53a4b1234feeafb65544ee55495e1bb37ec31b999b963cbccfd1d/nvidia_cusparselt_cu12-0.6.2-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_cusparselt_cu12-0.6.2-py3-none-manylinux2014_x86_64.whl.metadata (6.8 kB)
+Collecting nvidia-nccl-cu12==2.21.5 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-nccl-cu12==2.21.5 from https://files.pythonhosted.org/packages/df/99/12cd266d6233f47d00daf3a72739872bdc10267d0383508b0b9c84a18bb6/nvidia_nccl_cu12-2.21.5-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_nccl_cu12-2.21.5-py3-none-manylinux2014_x86_64.whl.metadata (1.8 kB)
+Collecting nvidia-nvtx-cu12==12.4.127 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-nvtx-cu12==12.4.127 from https://files.pythonhosted.org/packages/87/20/199b8713428322a2f22b722c62b8cc278cc53dffa9705d744484b5035ee9/nvidia_nvtx_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_nvtx_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata (1.7 kB)
+Collecting nvidia-nvjitlink-cu12==12.4.127 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for nvidia-nvjitlink-cu12==12.4.127 from https://files.pythonhosted.org/packages/ff/ff/847841bacfbefc97a00036e0fce5a0f086b640756dc38caea5e1bb002655/nvidia_nvjitlink_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata
+  Downloading nvidia_nvjitlink_cu12-12.4.127-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)
+Collecting triton==3.2.0 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for triton==3.2.0 from https://files.pythonhosted.org/packages/a7/2e/757d2280d4fefe7d33af7615124e7e298ae7b8e3bc4446cdb8e88b0f9bab/triton-3.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading triton-3.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.4 kB)
+Collecting sympy==1.13.1 (from torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for sympy==1.13.1 from https://files.pythonhosted.org/packages/b2/fe/81695a1aa331a842b582453b605175f419fe8540355886031328089d840a/sympy-1.13.1-py3-none-any.whl.metadata
+  Downloading sympy-1.13.1-py3-none-any.whl.metadata (12 kB)
+Collecting mpmath<1.4,>=1.1.0 (from sympy==1.13.1->torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for mpmath<1.4,>=1.1.0 from https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl.metadata
+  Downloading mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
+Collecting absl-py>=1.0.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for absl-py>=1.0.0 from https://files.pythonhosted.org/packages/58/0a/a10b45aab35b175aded078a462dc8d0c698f5b13946e7cb0869097b78bb6/absl_py-2.5.0-py3-none-any.whl.metadata
+  Downloading absl_py-2.5.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting astunparse>=1.6.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for astunparse>=1.6.0 from https://files.pythonhosted.org/packages/2b/03/13dde6512ad7b4557eb792fbcf0c653af6076b81e5941d36ec61f7ce6028/astunparse-1.6.3-py2.py3-none-any.whl.metadata
+  Downloading astunparse-1.6.3-py2.py3-none-any.whl.metadata (4.4 kB)
+Collecting flatbuffers>=24.3.25 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for flatbuffers>=24.3.25 from https://files.pythonhosted.org/packages/e8/2d/d2a548598be01649e2d46231d151a6c56d10b964d94043a335ae56ea2d92/flatbuffers-25.12.19-py2.py3-none-any.whl.metadata
+  Downloading flatbuffers-25.12.19-py2.py3-none-any.whl.metadata (1.0 kB)
+Collecting gast!=0.5.0,!=0.5.1,!=0.5.2,>=0.2.1 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for gast!=0.5.0,!=0.5.1,!=0.5.2,>=0.2.1 from https://files.pythonhosted.org/packages/1d/33/f1c6a276de27b7d7339a34749cc33fa87f077f921969c47185d34a887ae2/gast-0.7.0-py3-none-any.whl.metadata
+  Downloading gast-0.7.0-py3-none-any.whl.metadata (1.5 kB)
+Collecting google-pasta>=0.1.1 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for google-pasta>=0.1.1 from https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl.metadata
+  Downloading google_pasta-0.2.0-py3-none-any.whl.metadata (814 bytes)
+Collecting libclang>=13.0.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for libclang>=13.0.0 from https://files.pythonhosted.org/packages/1d/fc/716c1e62e512ef1c160e7984a73a5fc7df45166f2ff3f254e71c58076f7c/libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl.metadata
+  Downloading libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl.metadata (5.2 kB)
+Collecting opt-einsum>=2.3.2 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for opt-einsum>=2.3.2 from https://files.pythonhosted.org/packages/23/cd/066e86230ae37ed0be70aae89aabf03ca8d9f39c8aea0dec8029455b5540/opt_einsum-3.4.0-py3-none-any.whl.metadata
+  Downloading opt_einsum-3.4.0-py3-none-any.whl.metadata (6.3 kB)
+Collecting packaging (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for packaging from https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl.metadata
+  Downloading packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+Collecting protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<6.0.0dev,>=3.20.3 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<6.0.0dev,>=3.20.3 from https://files.pythonhosted.org/packages/e3/dd/cadd6ec43069247d91f6345fa7a0d2858bef6af366dbd7ba8f05d2c77d3b/protobuf-5.29.6-cp38-abi3-manylinux2014_x86_64.whl.metadata
+  Downloading protobuf-5.29.6-cp38-abi3-manylinux2014_x86_64.whl.metadata (592 bytes)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.11/site-packages (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14)) (79.0.1)
+Collecting six>=1.12.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for six>=1.12.0 from https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl.metadata
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting termcolor>=1.1.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for termcolor>=1.1.0 from https://files.pythonhosted.org/packages/33/d1/8bb87d21e9aeb323cc03034f5eaf2c8f69841e40e4853c2627edf8111ed3/termcolor-3.3.0-py3-none-any.whl.metadata
+  Downloading termcolor-3.3.0-py3-none-any.whl.metadata (6.5 kB)
+Collecting wrapt>=1.11.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for wrapt>=1.11.0 from https://files.pythonhosted.org/packages/34/f3/de70937472dd3e8a4e6811192f9c6075efdffd4a2cd9b4596bf160f89668/wrapt-2.2.2-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata
+  Downloading wrapt-2.2.2-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (7.4 kB)
+Collecting grpcio<2.0,>=1.24.3 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for grpcio<2.0,>=1.24.3 from https://files.pythonhosted.org/packages/a0/41/1a348767eb9d9bd7765dc4fa8a01723d3bb386d67f981ee5c6f9c02b8b1c/grpcio-1.82.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading grpcio-1.82.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (3.7 kB)
+Collecting tensorboard~=2.19.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for tensorboard~=2.19.0 from https://files.pythonhosted.org/packages/5d/12/4f70e8e2ba0dbe72ea978429d8530b0333f0ed2140cc571a48802878ef99/tensorboard-2.19.0-py3-none-any.whl.metadata
+  Downloading tensorboard-2.19.0-py3-none-any.whl.metadata (1.8 kB)
+Collecting keras>=3.5.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for keras>=3.5.0 from https://files.pythonhosted.org/packages/d4/16/d506c09bbff25927a65d13c542cb4eedc2d573e304f38b6ac3f49ed6be9b/keras-3.15.0-py3-none-any.whl.metadata
+  Downloading keras-3.15.0-py3-none-any.whl.metadata (6.3 kB)
+Collecting h5py>=3.11.0 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for h5py>=3.11.0 from https://files.pythonhosted.org/packages/52/a0/c1f604538ff6db22a0690be2dc44ab59178e115f63c917794e529356ab23/h5py-3.16.0-cp311-cp311-manylinux_2_28_x86_64.whl.metadata
+  Downloading h5py-3.16.0-cp311-cp311-manylinux_2_28_x86_64.whl.metadata (3.0 kB)
+Collecting ml-dtypes<1.0.0,>=0.5.1 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for ml-dtypes<1.0.0,>=0.5.1 from https://files.pythonhosted.org/packages/a9/80/19189ea605017473660e43762dc853d2797984b3c7bf30ce656099add30c/ml_dtypes-0.5.4-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading ml_dtypes-0.5.4-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.9 kB)
+  Link requires a different Python (3.11.15 not in: '>=3.7, <3.11'): https://files.pythonhosted.org/packages/fc/eb/2d62cc37fda071a12ba043f4fed34786e2c6c3fd725b054c231c6024ca0c/tensorflow_io_gcs_filesystem-0.28.0-cp311-cp311-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (from https://pypi.org/simple/tensorflow-io-gcs-filesystem/) (requires-python:>=3.7, <3.11)
+Collecting tensorflow-io-gcs-filesystem>=0.23.1 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for tensorflow-io-gcs-filesystem>=0.23.1 from https://files.pythonhosted.org/packages/66/7f/e36ae148c2f03d61ca1bff24bc13a0fef6d6825c966abef73fc6f880a23b/tensorflow_io_gcs_filesystem-0.37.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading tensorflow_io_gcs_filesystem-0.37.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (14 kB)
+Collecting charset_normalizer<4,>=2 (from requests>=2.32->-r requirements.txt (line 10))
+  Obtaining dependency information for charset_normalizer<4,>=2 from https://files.pythonhosted.org/packages/a5/34/49b9060e8418b14fb5cba9cf6bfb383111e2538a03a1fb18e66a95aeb3d5/charset_normalizer-3.4.9-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading charset_normalizer-3.4.9-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (41 kB)
+Collecting idna<4,>=2.5 (from requests>=2.32->-r requirements.txt (line 10))
+  Obtaining dependency information for idna<4,>=2.5 from https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl.metadata
+  Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+Collecting urllib3<3,>=1.26 (from requests>=2.32->-r requirements.txt (line 10))
+  Obtaining dependency information for urllib3<3,>=1.26 from https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl.metadata
+  Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+Collecting certifi>=2023.5.7 (from requests>=2.32->-r requirements.txt (line 10))
+  Obtaining dependency information for certifi>=2023.5.7 from https://files.pythonhosted.org/packages/ef/2f/c5464532e965badff2f4c4c1a3a83f5697f0d7c407ed0cda44aaa99bb451/certifi-2026.6.17-py3-none-any.whl.metadata
+  Downloading certifi-2026.6.17-py3-none-any.whl.metadata (2.5 kB)
+Collecting markdown>=2.6.8 (from tensorboard~=2.19.0->tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for markdown>=2.6.8 from https://files.pythonhosted.org/packages/de/1f/77fa3081e4f66ca3576c896ae5d31c3002ac6607f9747d2e3aa49227e464/markdown-3.10.2-py3-none-any.whl.metadata
+  Downloading markdown-3.10.2-py3-none-any.whl.metadata (5.1 kB)
+Collecting tensorboard-data-server<0.8.0,>=0.7.0 (from tensorboard~=2.19.0->tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for tensorboard-data-server<0.8.0,>=0.7.0 from https://files.pythonhosted.org/packages/73/c6/825dab04195756cf8ff2e12698f22513b3db2f64925bdd41671bfb33aaa5/tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl.metadata
+  Downloading tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl.metadata (1.1 kB)
+Collecting werkzeug>=1.0.1 (from tensorboard~=2.19.0->tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for werkzeug>=1.0.1 from https://files.pythonhosted.org/packages/93/8c/2e650f2afeb7ee576912636c23ddb621c91ac6a98e66dc8d29c3c69446e1/werkzeug-3.1.8-py3-none-any.whl.metadata
+  Downloading werkzeug-3.1.8-py3-none-any.whl.metadata (4.0 kB)
+INFO: pip is looking at multiple versions of tensorflow[and-cuda] to determine which version is compatible with other requirements. This could take a while.
+Collecting tensorflow[and-cuda]<2.20,>=2.19 (from -r requirements.txt (line 14))
+  Obtaining dependency information for tensorflow[and-cuda]<2.20,>=2.19 from https://files.pythonhosted.org/packages/ba/1c/370b5546cf7afc29649b2fb74c171ef2493a36f62cf901c1425ead4a56af/tensorflow-2.19.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading tensorflow-2.19.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+Collecting protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<6.0.0dev,>=3.20.3 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<6.0.0dev,>=3.20.3 from https://files.pythonhosted.org/packages/85/e4/07c80521879c2d15f321465ac24c70efe2381378c00bf5e56a0f4fbac8cd/protobuf-5.29.5-cp38-abi3-manylinux2014_x86_64.whl.metadata
+  Downloading protobuf-5.29.5-cp38-abi3-manylinux2014_x86_64.whl.metadata (592 bytes)
+INFO: pip is still looking at multiple versions of tensorflow[and-cuda] to determine which version is compatible with other requirements. This could take a while.
+Collecting mpmath<1.4,>=1.1.0 (from sympy==1.13.1->torch==2.6.0->-r requirements.txt (line 17))
+  Obtaining dependency information for mpmath<1.4,>=1.1.0 from https://files.pythonhosted.org/packages/d4/cf/3965bddbb4f1a61c49aacae0e78fd1fe36b5dc36c797b31f30cf07dcbbb7/mpmath-1.2.1-py3-none-any.whl.metadata
+  Downloading mpmath-1.2.1-py3-none-any.whl.metadata (8.3 kB)
+Collecting ml-dtypes<1.0.0,>=0.5.1 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for ml-dtypes<1.0.0,>=0.5.1 from https://files.pythonhosted.org/packages/db/dc/72992b68de367741bfab8df3b3fe7c29f982b7279d341aa5bf3e7ef737ea/ml_dtypes-0.5.3-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading ml_dtypes-0.5.3-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.9 kB)
+Collecting idna<4,>=2.5 (from requests>=2.32->-r requirements.txt (line 10))
+  Obtaining dependency information for idna<4,>=2.5 from https://files.pythonhosted.org/packages/de/a7/f76514cc40ad6234098ecdebda08732d75964776c51a42845b7da10649e2/idna-3.17-py3-none-any.whl.metadata
+  Downloading idna-3.17-py3-none-any.whl.metadata (6.4 kB)
+INFO: This is taking longer than usual. You might need to provide the dependency resolver with stricter constraints to reduce runtime. See https://pip.pypa.io/warnings/backtracking for guidance. If you want to abort this run, press Ctrl + C.
+Collecting grpcio<2.0,>=1.24.3 (from tensorflow<2.20,>=2.19->tensorflow[and-cuda]<2.20,>=2.19->-r requirements.txt (line 14))
+  Obtaining dependency information for grpcio<2.0,>=1.24.3 from https://files.pythonhosted.org/packages/23/d6/abeda5c2b896a0b341584fe5ac411bbf72e197a9a374c355fb90965e08d2/grpcio-1.81.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+  Downloading grpcio-1.81.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (3.7 kB)
+Collecting charset_normalizer<4,>=2 (from requests>=2.32->-r requirements.txt (line 10))
+  Obtaining dependency information for charset_normalizer<4,>=2 from https://files.pythonhosted.org/packages/a1/fa/f74eb381a7d94ded44739e9d94de18dc5edc9c17fb8c11f0a6890696c0a9/charset_normalizer-3.4.7-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading charset_normalizer-3.4.7-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+Collecting requests>=2.32 (from -r requirements.txt (line 10))
+  Obtaining dependency information for requests>=2.32 from https://files.pythonhosted.org/packages/15/5a/4a949d170476de3c04ac036b5466422fbcbf348a917d8042eedf2cac7d1b/requests-2.34.1-py3-none-any.whl.metadata
+  Downloading requests-2.34.1-py3-none-any.whl.metadata (4.8 kB)
+Collecting numpy<2.0,>=1.26 (from -r requirements.txt (line 9))
+  Obtaining dependency information for numpy<2.0,>=1.26 from https://files.pythonhosted.org/packages/5a/62/007b63f916aca1d27f5fede933fda3315d931ff9b2c28b9c2cf388cd8edb/numpy-1.26.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading numpy-1.26.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+ERROR: Cannot install -r requirements.txt (line 17), tensorflow[and-cuda]==2.19.0, tensorflow[and-cuda]==2.19.1 and torch because these package versions have conflicting dependencies.
+
+The conflict is caused by:
+    torch 2.6.0 depends on nvidia-cublas-cu12==12.4.5.8; platform_system == "Linux" and platform_machine == "x86_64"
+    nvidia-cudnn-cu12 9.1.0.70 depends on nvidia-cublas-cu12
+    nvidia-cusolver-cu12 11.6.1.9 depends on nvidia-cublas-cu12
+    tensorflow[and-cuda] 2.19.1 depends on nvidia-cublas-cu12==12.5.3.2; extra == "and-cuda"
+    tensorflow[and-cuda] 2.19.0 depends on nvidia-cublas-cu12==12.5.3.2; extra == "and-cuda"
+
+Additionally, some packages in these conflicts have no matching distributions available for your environment:
+    nvidia-cublas-cu12
+
+To fix this you could try to:
+1. loosen the range of package versions you've specified
+2. remove package versions to allow pip to attempt to solve the dependency conflict
+
+ERROR: ResolutionImpossible: for help visit https://pip.pypa.io/en/latest/topics/dependency-resolution/#dealing-with-dependency-conflicts
+Error: building at STEP "RUN pip install --no-cache-dir -v -r requirements.txt": while running runtime: exit status 1
+exit code: 1
